@@ -712,6 +712,10 @@ li.hide{display:none}
 .satcredit a{color:var(--ink)}
 .satwarn{display:none;position:absolute;left:50%;top:60px;transform:translateX(-50%);z-index:800;font-size:12.5px;background:#fff;padding:8px 12px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.25)}
 #map.is-sat .cty{color:#fff;text-shadow:0 0 3px #000}
+.sizeleg{margin:0 0 14px;font-size:.82rem;color:var(--muted)}
+.sizet{font-weight:600;color:var(--ink);margin-bottom:6px}
+.sizel{display:flex;font-size:.75rem;margin-top:2px}
+.sizen{font-size:.75rem;margin-top:4px}
 .note{font-size:.78rem;line-height:1.5;color:var(--muted);margin-top:22px}
 .note a{color:var(--ink)}
 .leaflet-popup-content{font-family:'Public Sans',sans-serif;font-size:.85rem;line-height:1.45;margin:14px 16px;width:250px!important}
@@ -739,11 +743,12 @@ li.hide{display:none}
   </details>
   <div class="stats"><div><b id="sE">0</b><span>attacks</span></div><div><b id="sK">0</b><span>killed</span></div><div><b id="sI">0</b><span>injured (reported)</span></div></div>
   <div class="slider"><label for="yr"><span>Show attacks up to</span><strong id="yrL">Oct 2011–2026</strong></label><input id="yr" type="range" min="2011" max="2026" step="1" value="2026"></div>
+  <div class="sizeleg"><div class="sizet">Bigger circle = more people killed</div><svg width="175" height="60" aria-hidden="true"><circle cx="12.2" cy="48.2" r="10.2" fill="#8a7f72" fill-opacity=".55" stroke="#5c544a" stroke-width="1"/><circle cx="60.3" cy="40.6" r="17.9" fill="#8a7f72" fill-opacity=".55" stroke="#5c544a" stroke-width="1"/><circle cx="126.4" cy="30.2" r="28.2" fill="#8a7f72" fill-opacity=".55" stroke="#5c544a" stroke-width="1"/></svg><div class="sizel"><div style="width:40px;text-align:center">1 killed</div><div style="width:56px;text-align:center">8 killed</div><div style="width:76px;text-align:center">28 killed</div></div><div class="sizen">Injuries are listed in each popup but do not change the circle size.</div></div>
   <div class="legend">
     <div class="row"><span class="dot" style="background:var(--civ)"></span>Civilians and passenger vehicles</div>
     <div class="row"><span class="dot" style="background:var(--sec)"></span>Police and soldiers</div>
     <div class="row"><span class="dot" style="background:var(--work)"></span>Road construction workers and machinery</div>
-    <div class="row"><span class="hollow"></span>No deaths reported. Circle size grows with deaths</div>
+    <div class="row"><span class="hollow"></span>Hollow circle: no deaths reported</div>
     <div class="row"><span class="ring"></span>Approximate location: exact site not found</div>
     <div class="row"><span class="dot" style="background:#5c4128;opacity:.8;border-radius:2px"></span>Brown speckle: where people live (WorldPop 2020)</div>
     <div class="row"><span style="width:18px;border-top:2.5px solid #7d7468;flex:none"></span>Main roads, incl. Mandera–Rhamu–Elwak (Natural Earth)</div>
@@ -769,7 +774,7 @@ const map=L.map('map',{zoomSnap:0.25,attributionControl:false,minZoom:7,maxZoom:
 map.createPane('base').style.zIndex=300;map.createPane('settle').style.zIndex=350;map.getPane('settle').style.pointerEvents='none';
 const baseL=L.geoJSON(BASE,{pane:'base',interactive:false,style:f=>({color:'#8c8578',weight:1.2,fillColor:f.properties.name==='Kenya'?'#eeeae3':'#dcd7ce',fillOpacity:1})}).addTo(map);
 const settleL=L.imageOverlay(IMG,[[2.4000000076,40.3],[4.3,41.90499999358]],{opacity:.9,interactive:false,pane:'settle'}).addTo(map);
-L.geoJSON(ROADS,{pane:'settle',interactive:false,style:{color:'#fff',weight:5,opacity:.8}}).addTo(map);L.geoJSON(ROADS,{pane:'settle',interactive:false,style:{color:'#7d7468',weight:2.5}}).addTo(map);
+const roadsCase=L.geoJSON(ROADS,{pane:'settle',interactive:false,style:{color:'#fff',weight:5,opacity:.8}}).addTo(map);const roadsL=L.geoJSON(ROADS,{pane:'settle',interactive:false,style:{color:'#7d7468',weight:2.5}}).addTo(map);
 const T={Mandera:[3.9373,41.8569],Arabia:[3.5254,41.4991],Fino:[3.37,41.44],Lafey:[3.1508,41.1864],Elwak:[2.8092,40.9289]};
 const kroadsL=L.geoJSON(KROADS,{pane:'settle',interactive:false,style:{color:'#9a9184',weight:.8,opacity:.8}}).addTo(map);
 L.geoJSON(COR,{pane:'settle',interactive:false,style:{color:'#fff',weight:6,opacity:.9}}).addTo(map);L.geoJSON(COR,{pane:'settle',interactive:false,style:{color:'#2b2620',weight:2.8}}).addTo(map);
@@ -804,15 +809,16 @@ const ctl=L.control({position:'topright'});
 ctl.onAdd=()=>{const d=L.DomUtil.create('div','viewsw');d.innerHTML='<button type="button" data-v="map" aria-pressed="true">Map</button><button type="button" data-v="sat" aria-pressed="false">Satellite</button>';L.DomEvent.disableClickPropagation(d);return d};
 ctl.addTo(map);
 const credit=document.createElement('div');credit.className='satcredit';credit.innerHTML='Imagery: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless</a> by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2020)';document.getElementById('map').appendChild(credit);
-const warn=document.createElement('div');warn.className='satwarn';warn.textContent='Satellite imagery could not load here. It works on the published link.';document.getElementById('map').appendChild(warn);
-let tileFail=0,tileOk=0;sat.on('tileerror',()=>{tileFail++;if(!tileOk&&tileFail>3)warn.style.display='block'});sat.on('tileload',()=>{tileOk++;warn.style.display='none'});
-function setView(v){const on=v==='sat';document.querySelectorAll('.viewsw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+const warn=document.createElement('div');warn.className='satwarn';warn.textContent='Satellite imagery could not load here, so the plain map is shown. Satellite works on the published link.';document.getElementById('map').appendChild(warn);
+let tileFail=0,tileOk=0;sat.on('tileerror',()=>{tileFail++;if(!tileOk&&tileFail>3&&map.hasLayer(sat)){setView('map');warn.style.display='block';setTimeout(()=>warn.style.display='none',6000)}});sat.on('tileload',()=>{tileOk++;warn.style.display='none'});
+function setView(v){const on=v==='sat';if(!on)warn.style.display='none';document.querySelectorAll('.viewsw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
  document.getElementById('map').classList.toggle('is-sat',on);
- if(on){sat.addTo(map);baseL.setStyle({fillOpacity:0,color:'#fff',weight:1.4,opacity:.9});map.removeLayer(settleL);kroadsL.setStyle({color:'#fff',opacity:.45});}
- else{map.removeLayer(sat);baseL.setStyle(f=>({fillOpacity:1,color:'#8c8578',weight:1.2,opacity:1}));settleL.addTo(map);kroadsL.setStyle({color:'#9a9184',opacity:.8});warn.style.display='none'}
+ if(on){sat.addTo(map);baseL.setStyle({fillOpacity:0,color:'#fff',weight:1.4,opacity:.9});map.removeLayer(settleL);kroadsL.setStyle({color:'#fff',opacity:.35,weight:.6});roadsCase.setStyle({opacity:0});roadsL.setStyle({color:'#fff',weight:1.3,opacity:.6});}
+ else{map.removeLayer(sat);baseL.setStyle(f=>({fillOpacity:1,color:'#8c8578',weight:1.2,opacity:1}));settleL.addTo(map);kroadsL.setStyle({color:'#9a9184',opacity:.8,weight:.8});roadsCase.setStyle({opacity:.8});roadsL.setStyle({color:'#7d7468',weight:2.5,opacity:1});warn.style.display='none'}
  Object.values(M).forEach(({m,e})=>m.setStyle({color:on?'#fff':COL[e.c],weight:on?1.6:(e.k?1:2)}));
  credit.style.display=on?'block':'none'}
 document.querySelectorAll('.viewsw button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+setView('sat');
 
 </script>
 </body>
