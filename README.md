@@ -1,15 +1,4 @@
-# omarmowher.github.io
-
-Personal website and web maps of **Mohamed Omar**, a geospatial analyst based in Nairobi, Kenya.
-
-| Page | Link |
-|---|---|
-| Portfolio | https://omarmowher.github.io |
-| Road attacks on the Mandera border corridor | https://omarmowher.github.io/mandera.html |
-
----
-
-## Road attacks on the Mandera border corridor since Kenya entered Somalia (2011–2026)
+# Road attacks on the Mandera border corridor since Kenya entered Somalia (2011–2026)
 
 An interactive web map of roadside bombs, ambushes and attacks on vehicles reported on the border road that runs from **Mandera through Arabia, Fino and Lafey to Elwak** in Mandera County, Kenya. The timeline starts in mid-October 2011, when Kenyan troops crossed into Somalia under Operation Linda Nchi.
 
@@ -28,7 +17,7 @@ An interactive web map of roadside bombs, ambushes and attacks on vehicles repor
 ### What it is not
 
 - **It is not a complete record.** Many incidents are never reported, and others were not found. No corridor road attacks were found for October 2011 to 2013 in the archives searched; that does not mean none happened.
-- **It is not an official product** of the Government of Kenya, RCMRD or any other organisation. It is an independent personal project.
+- **It is not an official product** of the Government of Kenya or any other organisation. It is an independent personal project.
 - **It is not a security assessment or travel advice.** Do not use it to make safety or operational decisions.
 
 ### How it was made
@@ -45,6 +34,28 @@ An interactive web map of roadside bombs, ambushes and attacks on vehicles repor
    - `3` approximate: exact site not found
 5. **Death tolls** use the best figure reported. Where reports disagree (for example 3 to 5 deaths), the note in the popup gives the range and the source used.
 6. **Attackers** are described only as the reports describe them, usually "suspected al-Shabaab".
+
+### Download the data
+
+**[Mandera_corridor_road_attacks_2011_2026.csv](Mandera_corridor_road_attacks_2011_2026.csv)**: one row per attack, with coordinates in WGS84 (`lat`, `lon`).
+
+| Field | Meaning |
+|---|---|
+| `id` | Row number, oldest first |
+| `date` | Date of the attack (YYYY-MM-DD) |
+| `year` | Year |
+| `place` | Place as named in the reports |
+| `road` | Road section |
+| `attack_type` | IED, ambush, gunfire and so on |
+| `target` | Who was targeted |
+| `killed` | Deaths reported (best figure) |
+| `injured` | Injuries reported; blank if not reported |
+| `geo_precision` | 1 = in a named town, 2 = placed from a distance in the report, 3 = approximate |
+| `lat`, `lon` | Position along the traced road |
+| `note` | Conflicting figures, how the point was placed, other context |
+| `source` | Link to the news report used |
+
+To use it in ArcGIS Pro, run **XY Table To Point** with `lon` as X and `lat` as Y (WGS 1984). In QGIS, use **Add Delimited Text Layer**.
 
 ### Data sources and credits
 
